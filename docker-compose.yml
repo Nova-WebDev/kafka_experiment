@@ -1,0 +1,117 @@
+name: kafka-lab
+
+x-kafka-node: &kafka-node
+  image: apache/kafka:3.7.0
+  user: "0:0"
+  restart: unless-stopped
+  networks:
+    - kl_net
+  healthcheck:
+    test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list"]
+    interval: 20s
+    timeout: 10s
+    retries: 10
+    start_period: 30s
+
+x-kafka-env: &kafka-env
+  CLUSTER_ID: ewDb7ll4QGyASCswHKNDLA
+  KAFKA_PROCESS_ROLES: broker,controller
+  KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+  KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+  KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+  KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+  KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kl_kafka_1:9093,2@kl_kafka_2:9093,3@kl_kafka_3:9093,4@kl_kafka_4:9093,5@kl_kafka_5:9093
+  KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
+  KAFKA_DEFAULT_REPLICATION_FACTOR: 5
+  KAFKA_MIN_INSYNC_REPLICAS: 3
+  KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 5
+  KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 5
+  KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 3
+  KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+  KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+  KAFKA_BROKER_HEARTBEAT_INTERVAL_MS: 500
+  KAFKA_BROKER_SESSION_TIMEOUT_MS: 3000
+  KAFKA_HEAP_OPTS: -Xms384m -Xmx384m
+
+services:
+  kafka-1:
+    <<: *kafka-node
+    container_name: kl_kafka_1
+    environment:
+      <<: *kafka-env
+      KAFKA_NODE_ID: 1
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kl_kafka_1:9092
+    volumes:
+      - kl_kafka_1_data:/tmp/kraft-combined-logs
+
+  kafka-2:
+    <<: *kafka-node
+    container_name: kl_kafka_2
+    environment:
+      <<: *kafka-env
+      KAFKA_NODE_ID: 2
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kl_kafka_2:9092
+    volumes:
+      - kl_kafka_2_data:/tmp/kraft-combined-logs
+
+  kafka-3:
+    <<: *kafka-node
+    container_name: kl_kafka_3
+    environment:
+      <<: *kafka-env
+      KAFKA_NODE_ID: 3
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kl_kafka_3:9092
+    volumes:
+      - kl_kafka_3_data:/tmp/kraft-combined-logs
+
+  kafka-4:
+    <<: *kafka-node
+    container_name: kl_kafka_4
+    environment:
+      <<: *kafka-env
+      KAFKA_NODE_ID: 4
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kl_kafka_4:9092
+    volumes:
+      - kl_kafka_4_data:/tmp/kraft-combined-logs
+
+  kafka-5:
+    <<: *kafka-node
+    container_name: kl_kafka_5
+    environment:
+      <<: *kafka-env
+      KAFKA_NODE_ID: 5
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kl_kafka_5:9092
+    volumes:
+      - kl_kafka_5_data:/tmp/kraft-combined-logs
+
+  backend:
+    build: ./backend
+    container_name: kl_backend
+    restart: unless-stopped
+    networks:
+      - kl_net
+    volumes:
+      - ./backend/src:/app/src
+
+  nginx:
+    build: ./nginx
+    container_name: kl_nginx
+    restart: unless-stopped
+    networks:
+      - kl_net
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+
+networks:
+  kl_net:
+    name: kl_net
+    driver: bridge
+
+volumes:
+  kl_kafka_1_data:
+  kl_kafka_2_data:
+  kl_kafka_3_data:
+  kl_kafka_4_data:
+  kl_kafka_5_data:

@@ -1,0 +1,5 @@
+fastapi==0.163.1
+uvicorn[standard]==0.54.0
+aiokafka==0.15.0
+pydantic-settings==2.16.3
+sse-starlette==3.7.0

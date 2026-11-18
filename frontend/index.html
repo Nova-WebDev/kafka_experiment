@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kafka Lab</title>
+    <script>
+      (function () {
+        var theme = "dark";
+        try {
+          theme = window.localStorage.getItem("kafka-lab-theme") || "dark";
+        } catch (error) {
+          theme = "dark";
+        }
+        document.documentElement.classList.toggle("dark", theme !== "light");
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
